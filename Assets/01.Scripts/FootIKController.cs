@@ -3,6 +3,8 @@ using UnityEngine.Animations.Rigging;
 
 public class FootIKController : MonoBehaviour
 {
+    private CharacterMotor motor;
+    
     [Header("IK Targets")]
     [SerializeField] private Transform leftFootTarget;
     [SerializeField] private Transform rightFootTarget;
@@ -20,20 +22,51 @@ public class FootIKController : MonoBehaviour
     [SerializeField] private float raycastDistance = 1f;
     [SerializeField] private float footOffset = 0.03f;
 
+    [Header("Stride Warping")]
+    [SerializeField] private float warpScaleMin = 0.8f;
+    [SerializeField] private float warpScaleMax = 1.2f;
+
     [Header("IK Smoothing")]
     [SerializeField] private float ikTargetPositionSmoothTime = 0.1f;
     private Vector3 leftFootVelocity;
     private Vector3 rightFootVelocity;
 
     private Animator animator;
+    private CharacterAnimator characterAnimator;
 
     private void Awake()
     {
+        motor = GetComponent<CharacterMotor>();
         animator = GetComponent<Animator>();
+        characterAnimator = GetComponent<CharacterAnimator>();
     }
-
+    
     private void LateUpdate()
     {
+        AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+        float normalizedTime = stateInfo.normalizedTime % 1f;
+
+        int stateHash = stateInfo.shortNameHash;
+        AnimationCurve rootPositionZCurve = characterAnimator.rootPosCurves[stateInfo.shortNameHash];
+
+        if (rootPositionZCurve != null)
+        {
+            float curveDuration = rootPositionZCurve.keys[rootPositionZCurve.length - 1].time;
+            float clipTime = normalizedTime * curveDuration;
+
+            float nativeSpeed = rootPositionZCurve.GetCurveDerivative(clipTime);
+
+            Vector3 planarVelocity = Vector3.ProjectOnPlane(motor.Rb.linearVelocity, transform.up);
+            float actualSpeed = planarVelocity.magnitude;
+
+            float warpScale = 1f;
+            if (nativeSpeed > 0.1f)
+            {
+                warpScale = Mathf.Clamp(actualSpeed / nativeSpeed, warpScaleMin,warpScaleMax);
+                Debug.Log(warpScale);
+            }
+        }
+
         float leftFootWeight = animator.GetFloat("LeftFoot_IK_Weight");
         float rightFootWeight = animator.GetFloat("RightFoot_IK_Weight");
         
@@ -47,12 +80,6 @@ public class FootIKController : MonoBehaviour
         
         Transform rightFoot = animator.GetBoneTransform(HumanBodyBones.RightFoot);
         HandleFootIK(rightFoot, rightFootTarget, rightFootWeight, ref rightFootVelocity);
-
-        //Transform leftFootBall = animator.GetBoneTransform(HumanBodyBones.LeftToes);
-        //HandleFootBallIK(leftFootBall, leftFootballTarget, leftFootWeight);
-        
-        //Transform rightFootBall = animator.GetBoneTransform(HumanBodyBones.RightToes);
-        //HandleFootBallIK(rightFootBall, rightFootballTarget, rightFootWeight);
     }
 
     private void HandleFootIK(Transform footTransform, Transform ikTarget, float ikWeight, ref Vector3 footVelocity)
