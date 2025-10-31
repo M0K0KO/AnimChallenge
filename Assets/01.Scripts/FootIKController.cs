@@ -46,25 +46,27 @@ public class FootIKController : MonoBehaviour
         AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
         float normalizedTime = stateInfo.normalizedTime % 1f;
 
-        int stateHash = stateInfo.shortNameHash;
-        AnimationCurve rootPositionZCurve = characterAnimator.rootPosCurves[stateInfo.shortNameHash];
-
-        if (rootPositionZCurve != null)
+        if (characterAnimator.rootPosCurves.ContainsKey(stateInfo.shortNameHash))
         {
-            float curveDuration = rootPositionZCurve.keys[rootPositionZCurve.length - 1].time;
-            float clipTime = normalizedTime * curveDuration;
+            AnimationCurve rootPositionZCurve = characterAnimator.rootPosCurves[stateInfo.shortNameHash];
 
-            float nativeSpeed = rootPositionZCurve.GetCurveDerivative(clipTime);
-
-            Vector3 planarVelocity = Vector3.ProjectOnPlane(motor.Rb.linearVelocity, transform.up);
-            float actualSpeed = planarVelocity.magnitude;
-
-            float warpScale = 1f;
-            if (nativeSpeed > 0.1f)
+            if (rootPositionZCurve != null)
             {
-                warpScale = Mathf.Clamp(actualSpeed / nativeSpeed, warpScaleMin,warpScaleMax);
-                Debug.Log(warpScale);
-            }
+                float curveDuration = rootPositionZCurve.keys[rootPositionZCurve.length - 1].time;
+                float clipTime = normalizedTime * curveDuration;
+
+                float nativeSpeed = rootPositionZCurve.GetCurveDerivative(clipTime);
+
+                Vector3 planarVelocity = Vector3.ProjectOnPlane(motor.Rb.linearVelocity, transform.up);
+                float actualSpeed = planarVelocity.magnitude;
+
+                float warpScale = 1f;
+                if (nativeSpeed > 0.1f)
+                {
+                    warpScale = Mathf.Clamp(actualSpeed / nativeSpeed, warpScaleMin,warpScaleMax);
+                    Debug.Log(warpScale);
+                }
+            }   
         }
 
         float leftFootWeight = animator.GetFloat("LeftFoot_IK_Weight");

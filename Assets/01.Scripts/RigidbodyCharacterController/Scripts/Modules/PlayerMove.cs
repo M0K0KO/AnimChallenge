@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class PlayerMove : MonoBehaviour, IPlayerModule
 {
+    private float refVelocity;
+    
     public Vector3 CalculateVelocity(CharacterMotor motor)
     {
         if (motor.IsDashing || motor.IsSliding) 
@@ -77,6 +79,9 @@ public class PlayerMove : MonoBehaviour, IPlayerModule
 
     private void AdjustMoveSpeed(CharacterMotor motor)
     {
-        motor.MovementData.moveSpeed = motor._playerInput.SprintInput ? motor.MovementData.sprintSpeed : motor.MovementData.walkSpeed;
+        float targetSpeed = motor._playerInput.SprintInput ? motor.MovementData.sprintSpeed : motor.MovementData.walkSpeed;
+        if (motor._playerInput.MoveInput == Vector2.zero) targetSpeed = 0f;
+        motor.MovementData.moveSpeed =
+            Mathf.SmoothDamp(motor.MovementData.moveSpeed, targetSpeed, ref refVelocity, 0.2f);
     }
 }

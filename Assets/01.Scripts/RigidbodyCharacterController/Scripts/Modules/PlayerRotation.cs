@@ -24,7 +24,7 @@ public class PlayerRotation : MonoBehaviour
             motor.MovementData.rotationSpeed * Time.fixedDeltaTime
         );
         
-        //motor.Rb.MoveRotation(newRotation);
-        transform.rotation = newRotation;
+        motor.Rb.MoveRotation(newRotation);
+        //transform.rotation = newRotation;
     }
 }

@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5dd3765350e2f6d428e198cb8fcd4367, type: 3}
   m_Name: PlayerMovementData
   m_EditorClassIdentifier: 
-  moveSpeed: 6
-  walkSpeed: 8
-  sprintSpeed: 11
+  moveSpeed: 7.000036
+  walkSpeed: 7
+  sprintSpeed: 13
   airControl: 4
-  rotationSpeed: 4
+  rotationSpeed: 15
   maxSlopeAngle: 60
   wallAngle: 80
